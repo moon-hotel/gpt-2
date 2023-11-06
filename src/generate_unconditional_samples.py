@@ -60,7 +60,7 @@ def sample_model(
             start_token=enc.encoder['<|endoftext|>'],
             batch_size=batch_size,
             temperature=temperature, top_k=top_k, top_p=top_p
-        )[:, 1:]
+        )[:, 1:] # 去掉第一个 start_token
 
         saver = tf.train.Saver()
         ckpt = tf.train.latest_checkpoint(os.path.join(models_dir, model_name))

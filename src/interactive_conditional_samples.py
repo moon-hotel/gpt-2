@@ -7,14 +7,13 @@ import numpy as np
 import tensorflow as tf
 
 import model, sample, encoder
-
 def interact_model(
-    model_name='124M',
+    model_name='1558M',
     seed=None,
     nsamples=1,
     batch_size=1,
     length=None,
-    temperature=1,
+    temperature=0.5,
     top_k=0,
     top_p=1,
     models_dir='models',
@@ -44,7 +43,7 @@ def interact_model(
         batch_size = 1
     assert nsamples % batch_size == 0
 
-    enc = encoder.get_encoder(model_name, models_dir)
+    enc = encoder.get_encoder(model_name, models_dir) # 实例化一个对象对原始输入进行索引转换
     hparams = model.default_hparams()
     with open(os.path.join(models_dir, model_name, 'hparams.json')) as f:
         hparams.override_from_dict(json.load(f))
@@ -66,15 +65,16 @@ def interact_model(
         )
 
         saver = tf.train.Saver()
+        print("=======",os.path.join(models_dir, model_name)) 
         ckpt = tf.train.latest_checkpoint(os.path.join(models_dir, model_name))
-        saver.restore(sess, ckpt)
+        saver.restore(sess, ckpt) # 恢复模型
 
         while True:
-            raw_text = input("Model prompt >>> ")
+            raw_text = input("Model prompt (输入提示) >>> ")
             while not raw_text:
                 print('Prompt should not be empty!')
                 raw_text = input("Model prompt >>> ")
-            context_tokens = enc.encode(raw_text)
+            context_tokens = enc.encode(raw_text) # 对原始输入转换为索引ID
             generated = 0
             for _ in range(nsamples // batch_size):
                 out = sess.run(output, feed_dict={
@@ -89,4 +89,5 @@ def interact_model(
 
 if __name__ == '__main__':
     fire.Fire(interact_model)
+    # 注意：1.13.1版本的TensorFlow需要的CUDA版本为10.0
 
